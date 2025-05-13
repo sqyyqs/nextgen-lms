@@ -25,7 +25,7 @@ flowchart TD
     E --> I[(PostgreSQL)]
     F --> I
 
-    D -->|Event Bus| O[REST API]
+    D --> O[REST API]
     O --> P[AI Service]
 ```
 ![img.png](img.png)
