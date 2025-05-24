@@ -28,10 +28,17 @@ model CourseContent {
 }
 
 model CourseHistory {
-  id          Int     @id @default(autoincrement())
+  id          Int @id @default(autoincrement())
   courseId    Int
+  userId      Int
   pagesViewed Int
-  userId      String?
 
+  user   User   @relation(fields: [userId], references: [id])
   course Course @relation(fields: [courseId], references: [id])
+}
+
+model User {
+  id            Int             @id @default(autoincrement())
+  walletNumber  String
+  CourseHistory CourseHistory[]
 }
