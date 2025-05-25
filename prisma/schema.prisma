@@ -3,7 +3,6 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
-// docker run --name nextgen-lms-postgres -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=admin -e POSTGRES_DB=ng-lms -p 5432:5432 -d postgres
 datasource db {
   provider = "postgresql"
   url      = "postgresql://admin:admin@localhost:5432/ng-lms"
@@ -15,7 +14,6 @@ model Course {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   contents  CourseContent[]
-  histories CourseHistory[]
 }
 
 model CourseContent {
@@ -24,17 +22,17 @@ model CourseContent {
   page     Int
   text     String
 
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course        Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  CourseHistory CourseHistory[]
 }
 
 model CourseHistory {
-  id          Int @id @default(autoincrement())
-  courseId    Int
-  userId      Int
-  pagesViewed Int
+  id              Int @id @default(autoincrement())
+  courseContentId Int
+  userId          Int
 
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
+  courseContent CourseContent @relation(fields: [courseContentId], references: [id])
 }
 
 model User {

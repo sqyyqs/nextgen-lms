@@ -5,9 +5,9 @@ const prisma = new PrismaClient()
 
 export async function POST(req: Request) {
     const body = await req.json()
-    const {courseId, userId} = body
+    const {courseContentId, userId} = body
 
-    if (!courseId || !userId) {
+    if (!courseContentId || !userId) {
         return NextResponse.json(
             {error: 'Missing courseId or userId'},
             {status: 400}
@@ -17,9 +17,8 @@ export async function POST(req: Request) {
     try {
         const history = await prisma.courseHistory.create({
             data: {
-                courseId: Number(courseId),
+                courseContentId: Number(courseContentId),
                 userId: Number(userId),
-                pagesViewed: 0,
             },
         })
 
@@ -35,11 +34,11 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
     const body = await req.json()
-    const {id, pagesViewed} = body
+    const {id, readedContentId} = body
 
-    if (!id || pagesViewed === undefined) {
+    if (!id || readedContentId === undefined) {
         return NextResponse.json(
-            {error: 'Missing id or pagesRead'},
+            {error: 'Missing id or readedContentId'},
             {status: 400}
         )
     }
@@ -50,7 +49,7 @@ export async function PATCH(req: Request) {
                 id: Number(id),
             },
             data: {
-                pagesViewed: Number(pagesViewed),
+                courseContentId: Number(readedContentId),
             },
         })
 
