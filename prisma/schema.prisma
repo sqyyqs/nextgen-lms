@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://admin:admin@localhost:5432/ng-lms"
+}
+
+model Course {
+  id        Int             @id @default(autoincrement())
+  title     String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  contents  CourseContent[]
+}
+
+model CourseContent {
+  id       Int    @id @default(autoincrement())
+  courseId Int
+  page     Int
+  text     String
+
+  course        Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  CourseHistory CourseHistory[]
+}
+
+model CourseHistory {
+  id              Int @id @default(autoincrement())
+  courseContentId Int
+  userId          Int
+
+  user          User          @relation(fields: [userId], references: [id])
+  courseContent CourseContent @relation(fields: [courseContentId], references: [id])
+}
+
+model User {
+  id            Int             @id @default(autoincrement())
+  walletNumber  String
+  CourseHistory CourseHistory[]
+}

@@ -29,3 +29,28 @@ flowchart TD
     O --> P[AI Service]
 ```
 ![img.png](img.png)
+
+
+# Запуск приложения
+
+пререкуизитэс
+1) docker
+2) npm 
+
+Запуск приложения
+```shell
+npm install
+```
+---------
+```shell
+docker run --name nextgen-lms-postgres -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=admin -e POSTGRES_DB=ng-lms -p 5432:5432 -d postgres
+```
+---------
+```shell
+npx prisma migrate deploy
+npx prisma generate
+```
+---------
+```shell
+npm run dev
+```
