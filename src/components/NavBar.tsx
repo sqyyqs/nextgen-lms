@@ -61,7 +61,7 @@ export function Navbar() {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className="rounded-md px-3 py-2 text-sm font-medium text-white hover:bg-dark hover:text-primary transition-colors duration-200"
+                                        className="rounded-md px-3 py-2 text-sm font-medium text-dark hover:bg-dark hover:text-primary transition-colors duration-200"
                                     >
                                         {item.name}
                                     </Link>
@@ -105,7 +105,7 @@ export function Navbar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-dark hover:text-primary"
+                                    className="block rounded-md px-3 py-2 text-base font-medium text-dark hover:bg-dark hover:text-primary"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     {item.name}
