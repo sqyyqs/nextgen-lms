@@ -12,6 +12,10 @@ module.exports = {
                 black: '#212121',
                 sky: '#BCCBDD',
                 frost:'#D8E0EB',
+                primary: '#FF0000',
+                dark: '#121212',
+                terminal:'#00FF00',
+
             },
         },
     },
