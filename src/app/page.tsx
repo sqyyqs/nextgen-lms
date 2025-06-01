@@ -18,7 +18,7 @@ export default function HomePage() {
         const address = accounts[0];
         setWalletAddress(address);
 
-        const nonceRes = await fetch('/api/auth/nonce');
+        const nonceRes = await fetch('/api/nonce');
         const {message} = await nonceRes.json();
 
         const signer = await provider.getSigner();
