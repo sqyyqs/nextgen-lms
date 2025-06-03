@@ -1,54 +1,57 @@
 'use client';
+import React, { useEffect, useState } from "react";
+import { loadContent } from "@/utils/content";
+import { TypewriterEffect } from "@/components/TypeWritterEffect";
+export default function HackerLabPage() {
+    const [content, setContent] = useState<Record<string, any>>({});
 
-import {useState} from 'react';
-import {ethers} from 'ethers';
+    useEffect(() => {
+        const fetchContent = async () => {
+            const data = await loadContent();
+            setContent(data);
+        };
+        fetchContent();
+    }, []);
 
-export default function HomePage() {
-    const [walletAddress, setWalletAddress] = useState('');
-    const [isConnected, setIsConnected] = useState(false);
-
-    const connectWallet = async () => {
-        if (!window.ethereum) {
-            alert('MetaMask не установлен');
-            return;
-        }
-
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.send('eth_requestAccounts', []);
-        const address = accounts[0];
-        setWalletAddress(address);
-
-        const nonceRes = await fetch('/api/nonce');
-        const {message} = await nonceRes.json();
-
-        const signer = await provider.getSigner();
-        const signature = await signer.signMessage(message);
-
-        const authRes = await fetch('/api/auth', {
-            method: 'POST',
-            body: JSON.stringify({address, signature, message}),
-        });
-
-        const data = await authRes.json();
-        if (data.success) {
-            setIsConnected(true);
-        } else {
-            alert('Ошибка авторизации');
-        }
-    };
+    if (!content.home) return (
+        <div className="min-h-screen bg-black text-frost p-8 font-mono">
+            <div className="animate-pulse">ЗАГРУЗКА СИСТЕМЫ...</div>
+        </div>
+    );
 
     return (
-        <main className="p-8">
-            {isConnected ? (
-                <div>✅ Подключено: {walletAddress}</div>
-            ) : (
-                <button
-                    onClick={connectWallet}
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                    Подключить MetaMask
-                </button>
-            )}
-        </main>
+        <div className="min-h-screen bg-black text-white p-8 font-mono">
+            <div className="max-w-3xl mx-auto">
+                <div className="mb-12 border-b border-white pb-8">
+                    <h1 className="text-4xl mb-4 uppercase tracking-wider text-red">
+                        <TypewriterEffect
+                            text={content.home.title}
+                            textColor={'#FF0000'}
+                            speed={150}
+                            cursorStyle="_"
+                        />
+                    </h1>
+                        <TypewriterEffect
+                            text={content.home.subtitle}
+                            speed={50}
+                            delay={2000}
+                            loop
+                        />
+                </div>
+
+                <div className="mb-12 h-64 flex items-center justify-center border-2 border-dashed border-white rounded-lg">
+                    <p className="text-white text-center">
+                        Здесь будет Контент с описанием платформы))<br />
+                        [ПРОСТРАНСТВО ЗАРЕЗЕРВИРОВАНО]
+                    </p>
+                </div>
+
+                <div className="text-white text-sm border-t border-white pt-6">
+                    <p>ВХОД В СИСТЕМУ ПОД КОНТРОЛЕМ 24/7</p>
+                    <p className="mt-1">ВСЕ ДАННЫЕ ШИФРУЮТСЯ</p>
+                </div>
+            </div>
+        </div>
     );
 }
+
