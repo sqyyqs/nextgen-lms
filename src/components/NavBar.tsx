@@ -14,21 +14,56 @@ export function Navbar() {
         { name: 'О НАС', href: '/about' },
     ]
 
+    const fetchNonce = async () => {
+        try {
+            const response = await fetch('/api/nonce', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            const { message } = await response.json()
+            return message.match(/Nonce: (.+)$/)[1]
+        } catch (error) {
+            console.error('Ошибка получения nonce:', error)
+            throw error
+        }
+    }
     const connectMetaMask = async () => {
         try {
             setIsConnecting(true)
 
-            // ЗАглушка от gpt
             if (!window.ethereum) {
                 throw new Error('MetaMask не установлен!')
             }
 
-            // ЗАглушка от gpt
             const accounts = await window.ethereum.request({
                 method: 'eth_requestAccounts'
             })
+            const address = accounts[0]
+            const nonce  = await fetchNonce()
 
-            setWalletAddress(accounts[0])
+            const message = `Подтвердите вход с адресом ${address}. Nonce: ${nonce}`
+            const signature = await window.ethereum.request({
+                method: 'personal_sign',
+                params: [message, address]
+            })
+
+            const authResponse = await fetch('/api/auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message,
+                    signature,
+                    address
+                })
+            })
+
+            if (!authResponse.ok) {
+                throw new Error('Ошибка аутентификации')
+            }
+
+            setWalletAddress(address)
             setIsAuthModalOpen(false)
         } catch (error) {
             console.error('Ошибка подключения:', error)
@@ -36,6 +71,10 @@ export function Navbar() {
         } finally {
             setIsConnecting(false)
         }
+    }
+
+    const disconnectWallet = () => {
+        setWalletAddress(null)
     }
 
     return (
@@ -54,7 +93,6 @@ export function Navbar() {
                             </Link>
                         </div>
 
-                        {/* Десктопное меню */}
                         <div className="hidden md:block">
                             <div className="ml-10 flex items-center space-x-4">
                                 {navItems.map((item) => (
@@ -66,16 +104,29 @@ export function Navbar() {
                                         {item.name}
                                     </Link>
                                 ))}
-                                <button
-                                    onClick={() => setIsAuthModalOpen(true)}
-                                    className="ml-4 rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-black transition-colors duration-200"
-                                >
-                                    {walletAddress ? 'КОШЕЛЁК ПОДКЛЮЧЕН' : 'ВХОД'}
-                                </button>
+                                {walletAddress ? (
+                                    <div className="flex items-center">
+                                        <span className="mr-2 text-sm text-primary">
+                                            {`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
+                                        </span>
+                                        <button
+                                            onClick={disconnectWallet}
+                                            className="rounded-md border border-red-500 px-3 py-1 text-sm text-red-500 hover:bg-red-500/10"
+                                        >
+                                            Выйти
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsAuthModalOpen(true)}
+                                        className="ml-4 rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-black transition-colors duration-200"
+                                    >
+                                        ВХОД
+                                    </button>
+                                )}
                             </div>
                         </div>
 
-                        {/* Мобильное меню кнопка */}
                         <div className="-mr-2 flex md:hidden">
                             <button
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -97,7 +148,6 @@ export function Navbar() {
                     </div>
                 </div>
 
-                {/* Мобильное меню */}
                 {isMenuOpen && (
                     <div className="md:hidden">
                         <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
@@ -111,15 +161,32 @@ export function Navbar() {
                                     {item.name}
                                 </Link>
                             ))}
-                            <button
-                                onClick={() => {
-                                    setIsMenuOpen(false)
-                                    setIsAuthModalOpen(true)
-                                }}
-                                className="mt-4 block w-full rounded-md border border-primary px-3 py-2 text-center text-base font-medium text-primary hover:bg-primary hover:text-black"
-                            >
-                                {walletAddress ? 'КОШЕЛЁК ПОДКЛЮЧЕН' : 'ВХОД'}
-                            </button>
+                            {walletAddress ? (
+                                <div className="mt-4 space-y-2">
+                                    <div className="text-sm text-primary p-2">
+                                        {`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            disconnectWallet()
+                                            setIsMenuOpen(false)
+                                        }}
+                                        className="block w-full rounded-md border border-red-500 px-3 py-2 text-center text-base text-red-500 hover:bg-red-500/10"
+                                    >
+                                        Выйти
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setIsMenuOpen(false)
+                                        setIsAuthModalOpen(true)
+                                    }}
+                                    className="mt-4 block w-full rounded-md border border-primary px-3 py-2 text-center text-base font-medium text-primary hover:bg-primary hover:text-black"
+                                >
+                                    ВХОД
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -151,12 +218,12 @@ export function Navbar() {
                                     ВОЙТИ ЧЕРЕЗ CRYPTO WALLET
                                 </h3>
                                 <p className="mb-4 text-sm text-sky">
-                                    Подключите свой кошелек для доступа к системе
+                                    Подпишите сообщение для подтверждения владения кошельком
                                 </p>
                                 <button
                                     onClick={connectMetaMask}
                                     disabled={isConnecting}
-                                    className={`flex w-full items-center justify-center rounded-md px-4 py-3 text-white transition-colors ${isConnecting ? 'bg-dark' : 'bg-primary hover:bg-primary'}`}
+                                    className={`flex w-full items-center justify-center rounded-md px-4 py-3 text-white transition-colors ${isConnecting ? 'bg-dark' : 'bg-primary hover:bg-primary/90'}`}
                                 >
                                     {isConnecting ? (
                                         <>
@@ -164,7 +231,7 @@ export function Navbar() {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            ПОДКЛЮЧЕНИЕ...
+                                            АВТОРИЗАЦИЯ...
                                         </>
                                     ) : (
                                         <>
@@ -173,20 +240,15 @@ export function Navbar() {
                                                 alt="MetaMask"
                                                 className="mr-2 h-6 w-6"
                                             />
-                                            META MASK
+                                            ПОДПИСАТЬ СООБЩЕНИЕ
                                         </>
                                     )}
                                 </button>
                             </div>
 
-                            {walletAddress && (
-                                <div className="mt-4 rounded-md bg-dark p-3 text-sm text-sky">
-                                    <p>Подключенный адрес:</p>
-                                    <p className="mt-1 truncate font-mono text-primary">
-                                        {walletAddress}
-                                    </p>
-                                </div>
-                            )}
+                            <div className="rounded-md bg-dark/50 p-3 text-sm text-sky">
+                                <p>Это действие не требует отправки транзакции и не влечет комиссий.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
